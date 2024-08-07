@@ -41,7 +41,7 @@ source "$MAINSCRIPT"
 @test "disable_jwt() accepts 1" {
   run disable_jwt <<< '1'
   assert_success
-  assert_output --partial 'proceeding'
+  assert_output --partial 'JWT secured authentication remains enabled'
   # Check variable value
   [ "$ENABLE_JWT" -eq 0]
 }
@@ -49,7 +49,7 @@ source "$MAINSCRIPT"
 @test "disable_jwt() reprompt until valid choice" {
   run disable_jwt <<< '01'
   assert_success
-  assert_output --partial 'proceeding'
+  assert_output --partial 'JWT secured authentication remains enabled'
   # Check variable value
   [ "$ENABLE_JWT" -eq 0]
 }
@@ -57,7 +57,7 @@ source "$MAINSCRIPT"
 @test "disable_jwt() set value for JWT variable" {
   run disable_jwt <<< '2'
   assert_success
-  assert_output --partial 'proceeding'
+  assert_output --partial 'JWT secured authentication disabled'
   # Check variable value
   [ "$ENABLE_JWT" -eq 1]
 }
