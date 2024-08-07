@@ -37,6 +37,14 @@ function write_header() {
   echo ""
 }
 
+pushd () {
+  command pushd "$@" > /dev/null
+}
+
+popd () {
+  command popd "$@" > /dev/null
+}
+
 function gather_facts() {
   write_to_terminal "Gathering installation system facts..."
   # Check if system is being installed in docker container and warn end user
@@ -129,15 +137,15 @@ function disable_jwt() {
 secured authentication is required starting with version 14.2?"
   select yn in "No" "Yes"; do
     case $yn in
-      Yes ) export ENABLE_JWT=1; write_to_terminal "JWT secured authentication disabled."; break;;
-      No ) write_to_terminal "JWT secured authentication remains enabled."; break;;
+      Yes ) export ENABLE_JWT=1; write_to_terminal "JWT secured authentication disabled, proceeding..."; break;;
+      No ) write_to_terminal "JWT secured authentication remains enabled, proceeding..."; break;;
     esac
   done
   printf "\n"
 }
 
 package_verification() {
-  write_to_terminal "Validaitng required rpm and GPG Key is present..."
+  write_to_terminal "Validating required rpm and GPG Key is present..."
   psmgwrpm=`ls $PWD | grep CARKpsmgw*`
   if [[ -f $psmgwrpm ]] ; then
     write_to_terminal "Installation rpm is present, proceeding..."
@@ -145,7 +153,9 @@ package_verification() {
     write_error "Installation rpm is not present, please add it to the installation folder. Exiting..."
     exit 1
   fi
+}
 
+preinstall_gpgkey() {
   if [[ -f $PWD/RPM-GPG-KEY-CyberArk ]] ; then
     write_to_terminal "GPG Key is present, proceeding..."
   else
@@ -266,6 +276,29 @@ function valid_hostname() {
   echo $stat
 }
 
+function testkey(){
+  # Function to list certificates in the keystore and verify keytool imports
+  # List keytool and export to file
+  print_info "Checking $1 keystore for $2 alias"
+  keytool -list -v -keystore $1 -alias $2 -storepass $3 > temp.log 2>&1
+
+  # Read in first line from file
+  line=$(head -n 1 temp.log)
+  verify="Alias name: $2"
+
+  # Compare log file and expected key alias
+  if [[ $line == $verify ]]; then
+    print_success "$2 successfully imported into $1 keystore"
+  else
+    print_error "$2 not present in $1 keystore. Exiting now..."
+    exit 1
+  fi
+ 
+  # Concatenate temp log and cleanup
+  cat temp.log >> html5gw.log
+  rm temp.log
+}
+
 function _start_test() {
   ### Begin System Validation
   write_header "Step 1: Validating installation requirements"
@@ -282,11 +315,13 @@ function _start_test() {
   disable_jwt
 
   ### Begin System Prep
-  write_header "Step 3: System preperation"
+  write_header "Step 3: Installation preperation"
 
   package_verification
 
-  #library_prereqs
+  preinstall_gpgkey
+
+  library_prereqs
 
   ### Install Tomcat
 

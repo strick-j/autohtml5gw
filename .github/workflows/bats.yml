@@ -28,3 +28,6 @@ jobs:
 
       - name: Run prompts tests
         run: bats test/prompts.bats
+
+      - name: Run validators tests
+        run: bats test/validators.bats
