@@ -33,7 +33,7 @@ source "$MAINSCRIPT"
 }
 
 @test "psmgw_hostname_prompt() rejects invalid hostname" {
-  run psmgw_hostname_prompt <<< 'psmgw.example'
+  run psmgw_hostname_prompt <<< ' psmgw.example'
   assert_failure
   assert_output --partial 'Invalid hostname'
 }
