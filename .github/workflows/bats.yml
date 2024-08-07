@@ -10,6 +10,8 @@ on:
 jobs:
   bats:
     runs-on: ubuntu-latest
+    container:
+      image: bats/bats:latest
     name: Install Bats and bats libs
     #strategy:
     #  matrix:
