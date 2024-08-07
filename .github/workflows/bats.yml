@@ -10,8 +10,6 @@ on:
 jobs:
   bats:
     runs-on: ubuntu-latest
-    container:
-      image: bats/bats:latest
     name: Install Bats and bats libs
     #strategy:
     #  matrix:
@@ -19,10 +17,10 @@ jobs:
    # container:
      # image: ${{ matrix.bash }}
     steps:
-      - name: Install git and curl
-        run: |
-          apk add git
-          apk add curl
+      #- name: Install git and curl
+       # run: |
+       #   apk add git
+       #   apk add curl
 
       - name: Checkout
         uses: actions/checkout@v4
