@@ -35,7 +35,7 @@ source "$MAINSCRIPT"
 @test "psmgw_hostname_prompt() catch invalid hostname" {
   run psmgw_hostname_prompt <<< 'psmgw .example'
   assert_success
-  assert_output --partial 'Invalid hostname'
+  assert_output --partial 'Invalid Hostname'
 }
 
 @test "disable_jwt() accepts 1" {
