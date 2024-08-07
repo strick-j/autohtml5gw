@@ -20,9 +20,8 @@ jobs:
       - name: Install git
         run: apk add git
 
-      
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set ownership
         run: |
