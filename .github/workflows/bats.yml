@@ -29,7 +29,7 @@ jobs:
           support-path: ${{ github.workspace }}/test/libs/bats-support
           assert-path: ${{ github.workspace }}/test/libs/bats-assert
           file-path: ${{ github.workspace }}/test/libs/bats-file
-          detik-insall: false
+          detik-install: false
 
       - name: Set ownership
         run: |
