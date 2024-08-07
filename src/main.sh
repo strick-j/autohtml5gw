@@ -9,6 +9,7 @@ CYBR_DEBUG=0
 DEBUG=0
 
 # Generic Variables
+AUTOHTML5GW_VERSION="0.0.1"
 ENABLE_JWT=0
 
 # Generic output functions (logging, terminal, etc..)
@@ -293,6 +294,16 @@ function _start_test() {
 
   ### Install 
 
+  exit 0
+}
+
+function _show_help {
+  printf "%s" "$(<help.txt)"  
+  exit 0
+}
+
+function _show_version {
+  echo "$AUTOHTML5GW_VERSION"
   exit 0
 }
 
