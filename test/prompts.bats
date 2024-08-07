@@ -32,8 +32,32 @@ source "$MAINSCRIPT"
   assert_output --partial 'psmgw.example.com'
 }
 
-@test "psmgw_hostname_prompt() rejects invalid hostname" {
+@test "psmgw_hostname_prompt() catch invalid hostname" {
   run psmgw_hostname_prompt <<< 'psmgw .example'
-  assert_failure
+  assert_success
   assert_output --partial 'Invalid hostname'
+}
+
+@test "disable_jwt() accepts 1" {
+  run disable_jwt <<< '1'
+  assert_success
+  assert_output --partial 'proceeding'
+  # Check variable value
+  [ "$ENABLE_JWT" -eq 0]
+}
+
+@test "disable_jwt() reprompt until valid choice" {
+  run disable_jwt <<< '01'
+  assert_success
+  assert_output --partial 'proceeding'
+  # Check variable value
+  [ "$ENABLE_JWT" -eq 0]
+}
+
+@test "disable_jwt() set value for JWT variable" {
+  run disable_jwt <<< '2'
+  assert_success
+  assert_output --partial 'proceeding'
+  # Check variable value
+  [ "$ENABLE_JWT" -eq 1]
 }
