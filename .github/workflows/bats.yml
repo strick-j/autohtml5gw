@@ -20,7 +20,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup Bats and bats libs
-        uses: uses bats-core/bats-action@2.0.0
+        uses: bats-core/bats-action@2.0.0
+        with:
+          support-path: ${{ github.workspace }}/test/libs/bats-support
+          assert-path: ${{ github.workspace }}/test/libs/bats-assert
+          file-path: ${{ github.workspace }}/test/libs/bats-file
+          detik-insall: false
 
       - name: Install git
         run: apk add git
