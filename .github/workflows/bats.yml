@@ -25,10 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set ownership
-        run: |
-          # this is to fix GIT not liking owner of the checkout dir
-          chown -R $(id -u):$(id -g) $PWD
+      #- name: Set ownership
+      ##  run: |
+       #   # this is to fix GIT not liking owner of the checkout dir
+       #   chown -R $(id -u):$(id -g) $PWD
 
       - name: Setup Bats and bats libs
         uses: bats-core/bats-action@2.0.0
@@ -38,8 +38,8 @@ jobs:
           file-path: ${{ github.workspace }}/test/libs/bats-file
           detik-install: false
       
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
+      #- name: Checkout submodules
+      #  run: git submodule update --init --recursive
 
       - name: Run main tests
         run: bats test/main.bats
