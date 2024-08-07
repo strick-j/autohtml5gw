@@ -9,19 +9,20 @@ MAINSCRIPT="$BATS_TEST_DIRNAME/../src/main.sh"
 source "$MAINSCRIPT"
 
 @test "valid_os() returns 0 for supported OS (rhel)" {
-  run valid_os <<< 'rhel'
-  assert_success
-  assert_output --partial 'proceeding'
+  test_os="rhel"
+  run valid_os $test_os
+  assert_output '0'
 }
 
 @test "valid_os() returns 0 for supported OS (rocky)" {
-  run valid_os <<< 'rocky'
-  assert_success
-  assert_output --partial 'proceeding'
+  test_os="rocky"
+  run valid_os $test_os
+  assert_output '0'
 }
 
-@test "valid_os() returns 1 for supported OS" {
-  run valid_os <<< 'centos'
-  assert_success
-  assert_output --partial 'exiting'
+@test "valid_os() returns 1 for unsupported OS (centos)" {
+  test_os="centos"
+  run valid_os $test_os
+
+  assert_output '1'
 }
