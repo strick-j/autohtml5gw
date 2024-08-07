@@ -25,3 +25,15 @@ source "$MAINSCRIPT"
   assert_failure
   assert_output --partial 'exiting'
 }
+
+@test "psmgw_hostname_prompt() accepts valid hostname" {
+  run psmgw_hostname_prompt <<< 'psmgw.example.com'
+  assert_success
+  assert_output --partial 'psmgw.example.com'
+}
+
+@test "psmgw_hostname_prompt() rejects invalid hostname" {
+  run psmgw_hostname_prompt <<< 'psmgw.example'
+  assert_failure
+  assert_output --partial 'Invalid hostname'
+}
