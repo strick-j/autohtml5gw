@@ -9,7 +9,7 @@ on:
 
 jobs:
   bats:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Install Bats and bats libs
     strategy:
       matrix:
