@@ -29,8 +29,6 @@ jobs:
         run: |
           # this is to fix GIT not liking owner of the checkout dir
           chown -R $(id -u):$(id -g) $PWD
-          curl --version
-          file $(which curl)
 
       - name: Setup Bats and bats libs
         uses: bats-core/bats-action@2.0.0
