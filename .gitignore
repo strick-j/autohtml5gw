@@ -1,0 +1,2 @@
+# Ignore lib directory under test
+test/bats/
