@@ -3,7 +3,7 @@
 set -e
 
 # Logging
-VAR_INSTALL_LOG_F=$PWD/regextest.log
+VAR_INSTALL_LOG_F=$PWD/autohtml5gw.log
 SHOULD_SHOW_LOGS=1
 CYBR_DEBUG=0
 DEBUG=0
@@ -11,6 +11,7 @@ DEBUG=0
 # Generic Variables
 AUTOHTML5GW_VERSION="0.0.1"
 ENABLE_JWT=0
+TOMCAT_HOME="/opt/tomcat"
 
 # Generic output functions (logging, terminal, etc..)
 function write_log() {
@@ -144,7 +145,7 @@ secured authentication is required starting with version 14.2?"
   printf "\n"
 }
 
-package_verification() {
+function package_verification() {
   write_to_terminal "Validating required rpm and GPG Key is present..."
   psmgwrpm=`ls $PWD | grep CARKpsmgw*`
   if [[ -f $psmgwrpm ]] ; then
@@ -155,7 +156,7 @@ package_verification() {
   fi
 }
 
-preinstall_gpgkey() {
+function preinstall_gpgkey() {
   if [[ -f $PWD/RPM-GPG-KEY-CyberArk ]] ; then
     write_to_terminal "GPG Key is present, proceeding..."
   else
@@ -164,7 +165,7 @@ preinstall_gpgkey() {
   fi
 }
 
-library_prereqs() {
+function library_prereqs() {
   # Validate Firewalld service is installed
   local firewalldservice=firewalld
   write_to_terminal "Verifying $firewalldservice is installed"
@@ -198,6 +199,96 @@ library_prereqs() {
       exit 1
     fi
   done
+}
+
+tomcat_user_check() {
+  local username="tomcat"
+  local membership=$(getent group wheel | awk -F: '{print $4}' | grep -w $username > /dev/null 2>&1)
+  local homedir=$(getent passwd $username | awk -F: '{print $6}')
+
+  # Check for tomcat group and create if not found
+  getent group tomcat > /dev/null 2>&1 || groupadd tomcat
+
+  # Check if tomcat user exists
+  write_to_terminal "Checking for tomcat user..."
+  if id -u $username > /dev/null 2>&1 ; then
+    write_to_terminal "Tomcat user exists, checking group membership..."
+    if $membership; then
+      write_to_terminal "$username is a member of the tomcat group, proceeding..."
+    else
+      write_to_terminal "$username is not a member of the tomcat group, adding..."
+      usermod -aG tomcat $username
+      if $membership; then
+        write_to_terminal "$username added to tomcat group successfully."
+      else
+        write_error "$username could not be added to tomcat group. Exiting..."
+        exit 1
+      fi
+    fi
+  else
+    write_to_terminal "Tomcat user does not exist, creating..."
+    useradd -s /bin/nologin -g tomcat -d $TOMCAT_HOME tomcat
+    if id -u $username > /dev/null 2>&1 ; then
+      write_to_terminal "Tomcat user created successfully."
+    else
+      write_error "Tomcat user could not be created. Exiting..."
+      exit 1
+    fi
+  fi
+
+  # Check for tomcat home directory
+  write_to_terminal "Checking for tomcat home directory..."
+  export TOMCAT_HOME=$homedir
+  write_to_terminal "Tomcat home directory set to $TOMCAT_HOME, proceeding..."
+}
+
+function tomcat_install() {
+  write_to_terminal "Finding latest version of Tomcat (v9)..."
+   # Specify major version of Tomcat desired
+  local wanted_ver=9
+  # Use curl to search for latest minor version of specified major version
+  local tomcat_ver=`curl --silent https://downloads.apache.org/tomcat/tomcat-${wanted_ver}/ | grep v${wanted_ver} | awk '{split($5,c,">v") ; split(c[2],d,"/") ; print d[1]}' | tail -n 1`
+  write_to_terminal "Latest version of Tomcat v${wanted_ver} is ${tomcat_ver}, downloading..."
+  # Create URL based on curl
+  local apache_url="https://downloads.apache.org/tomcat/tomcat-${wanted_ver}/v${tomcat_ver}/bin/apache-tomcat-${tomcat_ver}.tar.gz"
+  # Create URL based on curl
+  if [[ `curl -Is ${apache_url}` == *200* ]] ; then
+    write_to_terminal "URL Found: ${apache_url}"
+    wget $apache_url >> $VAR_INSTALL_LOG_F 2>&1
+    if [[ $? -eq 0 ]] ; then
+      write_to_terminal "Apache Tomcat downloaded successfully. Extracting..."
+      tar -xvf apache-tomcat-${tomcat_ver}.tar.gz -C /opt/tomcat --strip-components=1 >> $VAR_INSTALL_LOG_F 2>&1
+    else
+      write_error "Apache Tomcat could not be downloaded. Exiting now..."
+      exit 1
+    fi
+  else 
+    print_error "Apache Tomcat could not be downloaded. Exiting now..."
+    exit 1
+  fi
+}
+
+function tomcat_permissions() {
+  # Set Tomcat Permissions
+  print_info "Setting Tomcat folder permissions"
+  pushd /opt/tomcat
+  sudo chgrp -R tomcat conf
+  sudo chmod g+rwx conf
+  sudo chmod g+r conf/*
+  sudo chown -R tomcat logs/ temp/ webapps/ work/
+  sudo chgrp -R tomcat bin
+  sudo chgrp -R tomcat lib
+  sudo chmod g+rwx bin
+  sudo chmod g+r bin/*
+  popd
+}
+
+function tomcat_service() {
+  # Create and enable Tomcat Service
+  print_info "Creating Tomcat Service"
+  cp tomcat.service /etc/systemd/system/tomcat.service >> $VAR_INSTALL_LOG_F
+  systemctl daemon-reload >> $VAR_INSTALL_LOG_F
+  systemctl enable tomcat >> $VAR_INSTALL_LOG_F 2>&1
 }
 
 function confirm_input() {
@@ -325,7 +416,18 @@ function _start_test() {
 
   ### Install Tomcat
 
+  write_header "Step 4: Installing Tomcat"
 
+  # Check for Tomcat User
+  tomcat_user_check
+
+  tomcat_install
+
+  tomcat_permissions
+
+  #tomcat_certificate
+
+  #tomcat_config
 
   ### Install 
 
